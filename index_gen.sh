@@ -2,7 +2,8 @@
 
 function get_folders {
     local INDECES=()
-    for folder in $(ls -d */ | grep -v utils); do
+    AVOID="utils|deprecated"
+    for folder in $(ls -d */ | grep -vE $AVOID); do
         INDECES+="$folder "
     done
     INDECES+=". "
@@ -18,23 +19,23 @@ function gen_index {
         echo -e "/*$4*/" > $IDX_NAME
     fi
     OS=$(uname)
-    AVOID="_?index.yara?|index_|utils"
+    AVOID="_?index.yara?|index_|utils|deprecated"
     if [ x"$BASE" == x"." ]; then
         if [ $INC_MOBILE == false ]; then
             AVOID+="|Mobile"
         fi
         if [ $OS == "Darwin" ]; then
-            find -E $BASE -regex ".*\.yara?" | grep -vE "$AVOID" | awk '{print "include \"" $0 "\""}' >> $IDX_NAME
+            find -E $BASE -regex ".*\.yara?" | grep -vE "$AVOID" | sort | awk '{print "include \"" $0 "\""}' >> $IDX_NAME
         else
             # Linux version and potentialy Cygwin
-            find $BASE -regex ".*\.yara?" | grep -vE "$AVOID" | awk '{print "include \"" $0 "\""}' >> $IDX_NAME
+            find $BASE -regex ".*\.yara?" | grep -vE "$AVOID" | sort | awk '{print "include \"" $0 "\""}' >> $IDX_NAME
         fi
     else
         if [ $OS == "Darwin" ]; then
-            find -E $BASE -regex ".*\.yara?" | grep -vE "$AVOID" | awk '{print "include \"./" $0 "\""}' >> $IDX_NAME
+            find -E $BASE -regex ".*\.yara?" | grep -vE "$AVOID" | sort | awk '{print "include \"./" $0 "\""}' >> $IDX_NAME
         else
             # Linux version and potentialy Cygwin
-            find $BASE -regex ".*\.yara?" | grep -vE "$AVOID" | awk '{print "include \"./" $0 "\""}' >> $IDX_NAME
+            find $BASE -regex ".*\.yara?" | grep -vE "$AVOID" | sort | awk '{print "include \"./" $0 "\""}' >> $IDX_NAME
         fi
     fi
 }
